@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Loan Approval Predictor{% endblock %}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="{{ url_for('index') }}">
+      <span class="brand-mark">&#9670;</span>
+      <span class="brand-text">Loan Approval <em>Predictor</em></span>
+    </a>
+    <nav class="nav">
+      <a href="{{ url_for('index') }}" class="{{ 'active' if request.endpoint == 'index' }}">New assessment</a>
+      <a href="{{ url_for('history') }}" class="{{ 'active' if request.endpoint in ('history', 'result') }}">History</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    {% if model_error %}
+      <div class="alert alert-error"><strong>Model unavailable.</strong> {{ model_error }}</div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">{{ footer_note }}</footer>
+
+  {% block overlay %}{% endblock %}
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}{{ r.applicant_name }} · Decision report{% endblock %}
+
+{% block content %}
+{% set approved = r.decision == "Approved" %}
+<section class="hero hero-compact">
+  <p class="eyebrow">Decision report · {{ r.reference }}</p>
+  <h1>{{ r.applicant_name }}</h1>
+  <p class="lead">Assessed {{ r.created_at }} · {{ r.loan_purpose }} loan of {{ r.loan_amount | money }} thousand over {{ (r.inputs.Loan_Amount_Term / 12) | round(1) }} years</p>
+</section>
+
+<div class="report">
+  <article class="card decision {{ 'is-approved' if approved else 'is-declined' }}">
+    <p class="eyebrow">Outcome</p>
+    <p class="verdict">{{ 'Approved' if approved else 'Not approved' }}</p>
+    <div class="gauge" style="--p: {{ r.probability }};">
+      <div class="gauge-inner">
+        <span class="gauge-value">{{ r.probability }}%</span>
+        <span class="gauge-label">chance of approval</span>
+      </div>
+    </div>
+    <p class="fine">The model's estimated probability of approval. The decision uses a 50% cut-off.</p>
+  </article>
+
+  <article class="card metrics">
+    <p class="eyebrow">Repayment picture</p>
+    <dl>
+      <div><dt>Estimated monthly repayment</dt><dd>{{ r.derived.EMI | money }}</dd></div>
+      <div><dt>Total household income (monthly)</dt><dd>{{ r.derived.TotalIncome | money }}</dd></div>
+      <div><dt>Debt-to-income ratio</dt><dd>{{ (r.derived.DTI * 100) | round(1) }}% <span class="pill">{{ debt_band }}</span></dd></div>
+    </dl>
+    <p class="fine">Repayment uses a 9% annual rate, an assumption for this demo. A ratio up to 36% is generally comfortable, 36–50% is stretched, and above 50% is high. These are common rules of thumb, not a bank policy.</p>
+  </article>
+</div>
+
+<article class="card">
+  <p class="eyebrow">Application details</p>
+  <div class="detail-grid">
+    <div><span>Age</span><strong>{{ r.age }}</strong></div>
+    <div><span>Gender</span><strong>{{ r.inputs.Gender }}</strong></div>
+    <div><span>Married</span><strong>{{ r.inputs.Married }}</strong></div>
+    <div><span>Dependents</span><strong>{{ r.inputs.Dependents }}</strong></div>
+    <div><span>Education</span><strong>{{ r.inputs.Education }}</strong></div>
+    <div><span>Self-employed</span><strong>{{ r.inputs.Self_Employed }}</strong></div>
+    <div><span>Applicant income</span><strong>{{ r.inputs.ApplicantIncome | money }}</strong></div>
+    <div><span>Co-applicant income</span><strong>{{ r.inputs.CoapplicantIncome | money }}</strong></div>
+    <div><span>Loan amount (thousands)</span><strong>{{ r.inputs.LoanAmount | money }}</strong></div>
+    <div><span>Loan term</span><strong>{{ r.inputs.Loan_Amount_Term | int }} months</strong></div>
+    <div><span>Property area</span><strong>{{ r.inputs.Property_Area }}</strong></div>
+    <div><span>Credit history</span><strong>{{ 'Yes' if r.inputs.Credit_History == 1.0 else 'No' }}</strong></div>
+  </div>
+</article>
+
+<div class="actions">
+  <a class="btn btn-ghost" href="{{ url_for('index') }}">New assessment</a>
+  <a class="btn btn-ghost" href="{{ url_for('history') }}">View history</a>
+  <button class="btn btn-ghost" type="button" onclick="window.print()">Print report</button>
+</div>
+{% endblock %}

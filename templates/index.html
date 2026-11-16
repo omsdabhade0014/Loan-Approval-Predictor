@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block title %}New assessment · Loan Approval Predictor{% endblock %}
+
+{% macro text_field(name, label, value, hint="", attrs="") %}
+<label class="field">
+  <span class="field-label">{{ label }}</span>
+  <input type="text" name="{{ name }}" value="{{ value }}" {{ attrs }}>
+  {% if hint %}<small class="hint">{{ hint }}</small>{% endif %}
+</label>
+{% endmacro %}
+
+{% macro number_field(name, label, value, min, max, step="any", hint="") %}
+<label class="field">
+  <span class="field-label">{{ label }}</span>
+  <input type="number" name="{{ name }}" value="{{ value }}" min="{{ min }}" max="{{ max }}" step="{{ step }}" required>
+  {% if hint %}<small class="hint">{{ hint }}</small>{% endif %}
+</label>
+{% endmacro %}
+
+{% macro select_field(name, label, options, value, hint="") %}
+<label class="field">
+  <span class="field-label">{{ label }}</span>
+  <select name="{{ name }}" required>
+    {% for opt_value, opt_label in options %}
+      <option value="{{ opt_value }}" {% if value|string == opt_value %}selected{% endif %}>{{ opt_label }}</option>
+    {% endfor %}
+  </select>
+  {% if hint %}<small class="hint">{{ hint }}</small>{% endif %}
+</label>
+{% endmacro %}
+
+{% block content %}
+<section class="hero">
+  <p class="eyebrow">Credit decision support</p>
+  <h1>Assess a loan application</h1>
+  <p class="lead">Enter the applicant's details. The model estimates approval, the monthly repayment and the debt-to-income ratio, and saves the result to the history.</p>
+</section>
+
+{% if errors %}
+<div class="alert alert-error">
+  <strong>Please correct the following:</strong>
+  <ul>{% for e in errors %}<li>{{ e }}</li>{% endfor %}</ul>
+</div>
+{% endif %}
+
+<form id="predict-form" class="card form" method="post" action="{{ url_for('index') }}">
+  <fieldset>
+    <legend><span class="num">01</span> Applicant profile</legend>
+    <div class="grid">
+      {{ text_field("applicant_name", "Applicant name", values.applicant_name,
+                    "Used to search the history", 'maxlength="80" placeholder="e.g. Priya Sharma" required') }}
+      {{ number_field("Age", "Age", values.Age, 18, 100, "1", "Recorded for history; not used by the model") }}
+      {{ select_field("loan_purpose", "Loan purpose", options.loan_purpose, values.loan_purpose,
+                      "Recorded for history; not used by the model") }}
+      {{ select_field("Gender", "Gender", options.Gender, values.Gender) }}
+      {{ select_field("Married", "Married", options.Married, values.Married) }}
+      {{ select_field("Dependents", "Dependents", options.Dependents, values.Dependents) }}
+      {{ select_field("Education", "Education", options.Education, values.Education) }}
+      {{ select_field("Self_Employed", "Self-employed", options.Self_Employed, values.Self_Employed) }}
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend><span class="num">02</span> Income and loan request</legend>
+    <div class="grid">
+      {{ number_field("ApplicantIncome", "Applicant income (monthly)", values.ApplicantIncome, 0, 10000000) }}
+      {{ number_field("CoapplicantIncome", "Co-applicant income (monthly)", values.CoapplicantIncome, 0, 10000000) }}
+      {{ number_field("LoanAmount", "Loan amount (thousands)", values.LoanAmount, 1, 100000, "any", "130 means 130,000") }}
+      {{ select_field("Loan_Amount_Term", "Loan term", options.Loan_Amount_Term, values.Loan_Amount_Term) }}
+      {{ select_field("Property_Area", "Property area", options.Property_Area, values.Property_Area) }}
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend><span class="num">03</span> Credit profile</legend>
+    <div class="grid">
+      {{ select_field("Credit_History", "Credit history", options.Credit_History, values.Credit_History,
+                      "The strongest factor in most assessments") }}
+    </div>
+  </fieldset>
+
+  <div class="form-actions">
+    <p class="fine">Name, age and purpose are stored for records. The model uses the financial and credit fields.</p>
+    <button type="submit" class="btn btn-primary" {% if model_error %}disabled{% endif %}>Run assessment</button>
+  </div>
+</form>
+{% endblock %}
+
+{% block overlay %}
+<div class="loader" id="loader" role="status" aria-live="polite" hidden>
+  <div class="loader-card">
+    <div class="loader-seal"><span></span></div>
+    <h2>Assessing application</h2>
+    <ol class="loader-steps">
+      <li data-step>Validating applicant details</li>
+      <li data-step>Computing income, repayment and debt ratio</li>
+      <li data-step>Running the trained model</li>
+      <li data-step>Preparing the decision report</li>
+    </ol>
+    <div class="loader-track"><span id="loader-fill"></span></div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}History · Loan Approval Predictor{% endblock %}
+
+{% block content %}
+<section class="hero hero-compact">
+  <p class="eyebrow">Records</p>
+  <h1>Assessment history</h1>
+  <p class="lead">Every assessment is saved. Search by applicant name or reference, or filter by decision.</p>
+</section>
+
+<section class="stats">
+  <div class="card stat"><span>Assessments</span><strong>{{ stats.total }}</strong></div>
+  <div class="card stat"><span>Approved</span><strong>{{ stats.approved }}</strong></div>
+  <div class="card stat"><span>Not approved</span><strong>{{ stats.not_approved }}</strong></div>
+  <div class="card stat"><span>Approval rate</span><strong>{{ stats.approval_rate }}%</strong></div>
+</section>
+
+<form class="card search" method="get" action="{{ url_for('history') }}">
+  <label class="field grow">
+    <span class="field-label">Search</span>
+    <input type="search" name="q" value="{{ q }}" placeholder="Applicant name or reference (e.g. LA-1A2B3C4D)">
+  </label>
+  <label class="field">
+    <span class="field-label">Decision</span>
+    <select name="decision">
+      {% for option in ["All", "Approved", "Not approved"] %}
+        <option value="{{ option }}" {% if decision == option %}selected{% endif %}>{{ option }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <div class="search-actions">
+    <button class="btn btn-primary" type="submit">Search</button>
+    {% if q or decision != "All" %}<a class="btn btn-ghost" href="{{ url_for('history') }}">Clear</a>{% endif %}
+  </div>
+</form>
+
+{% if rows %}
+<div class="card table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Reference</th><th>Applicant</th><th>Purpose</th><th class="num-col">Loan (thousands)</th>
+        <th>Decision</th><th class="num-col">Probability</th><th>Assessed</th><th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td><a href="{{ url_for('result', reference=row.reference) }}" class="ref">{{ row.reference }}</a></td>
+        <td>{{ row.applicant_name }}</td>
+        <td>{{ row.loan_purpose }}</td>
+        <td class="num-col">{{ row.loan_amount | money }}</td>
+        <td><span class="badge {{ 'badge-ok' if row.decision == 'Approved' else 'badge-no' }}">{{ row.decision }}</span></td>
+        <td class="num-col">{{ row.probability }}%</td>
+        <td class="muted">{{ row.created_at }}</td>
+        <td class="row-actions">
+          <a href="{{ url_for('result', reference=row.reference) }}">View</a>
+          <form method="post" action="{{ url_for('delete', reference=row.reference) }}" data-confirm="Delete this record permanently?">
+            <button class="link-danger" type="submit">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card empty">
+  <p>{% if q or decision != "All" %}No records match your search.{% else %}No assessments yet. <a href="{{ url_for('index') }}">Run the first one</a>.{% endif %}</p>
+</div>
+{% endif %}
+{% endblock %}
