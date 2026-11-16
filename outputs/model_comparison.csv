@@ -1,0 +1,6 @@
+Model,CV macro-F1 (train),CV ROC AUC (train),Accuracy,Precision (approved),Recall (approved),Recall (not approved),F1 (approved),ROC AUC
+Decision Tree (tuned),0.648,0.638,0.717,0.805,0.765,0.615,0.785,0.746
+Logistic Regression,0.609,0.686,0.742,0.772,0.877,0.462,0.821,0.779
+Random Forest,0.569,0.63,0.708,0.74,0.877,0.359,0.802,0.715
+Decision Tree,0.553,0.581,0.758,0.795,0.864,0.538,0.828,0.722
+KNN (k=7),0.487,0.538,0.683,0.697,0.938,0.154,0.8,0.607
